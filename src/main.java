@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.Random;
 
+// main class, starts the server and does a restart
 class main {
     public static void main (String[] argv) throws Exception{
         while (true) {
@@ -15,6 +16,8 @@ class main {
     }
 }
 
+
+// class for player, his stats, ships, socket and game status
 class Client {
     Socket cs;
     DataInputStream dis;
@@ -30,6 +33,9 @@ class Client {
     }
 }
 
+
+// class for Server, this class provides the game, in-game management and connects two players
+// this class works like a thread, hence it is more convenient to manage its work
 class Server extends Thread {
     ServerSocket ss;
     Client client1;
@@ -41,6 +47,9 @@ class Server extends Thread {
 
     public void run() {
         try {
+
+            // work of this class is separated in two parts: preparation and the game
+            // this is the part of preparation where two players are connecting to the server and preparing their fields
             client1 = new Client(ss.accept());
             ClientWaitThread first = new ClientWaitThread(client1);
             first.start();
@@ -55,6 +64,8 @@ class Server extends Thread {
             client1.dos.writeUTF("start");
             client2.dos.writeUTF("start");
 
+            // when both players are ready to play starts the second part
+            // the game starts and ends here
             Game game = new Game(client1, client2);
             game.start();
             game.join();
@@ -63,6 +74,8 @@ class Server extends Thread {
     }
 }
 
+
+// this thread is made to prepare player for the game(placement of the ships)
 class ClientWaitThread extends Thread {
     Client client;
     int FIELD_SIZE = 10;
@@ -86,6 +99,7 @@ class ClientWaitThread extends Thread {
         } catch (Exception ex) {}
     }
 
+    //function that provides correct placement of user ships
     public void fillField(Client client) {
         Random random = new Random();
         int[][] field = new int[FIELD_SIZE][FIELD_SIZE];
@@ -192,6 +206,7 @@ class ClientWaitThread extends Thread {
 
 }
 
+// in this thread goes exactly the game cycle
 class Game extends Thread {
     Client client1;
     Client client2;
@@ -221,17 +236,14 @@ class Game extends Thread {
                 attackingClient.dos.writeUTF("yourturn");
                 victimClient.dos.writeUTF("enemyturn");
 
-                //input = new String[3];
                 String s = attackingClient.dis.readUTF();
                 System.out.println(s);
                 String[] input = s.trim().split(":");
                 if (victimClient.field[Integer.parseInt(input[2])][Integer.parseInt(input[1])] == 1) {
-                    //victimClient.field[Integer.parseInt(input[2])][Integer.parseInt(input[1])] = 8;
                     victimClient.dos.writeUTF("shot:myfield:" + input[2] + ":" + input[1]);
                     attackingClient.dos.writeUTF("shot:enemyfield:" + input[2] + ":" + input[1]);
                     victimClient.alive--;
                 } else {
-                    //victimClient.field[Integer.parseInt(input[2])][Integer.parseInt(input[1])] = 9;
                     victimClient.dos.writeUTF("miss:myfield:" + input[2] + ":" + input[1]);
                     attackingClient.dos.writeUTF("miss:enemyfield:" + input[2] + ":" + input[1]);
                     if (turn) {
