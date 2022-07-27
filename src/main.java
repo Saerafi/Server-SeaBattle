@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.Random;
 
 // main class, starts the server and does a restart
-class main {
-    public static void main (String[] argv) throws Exception{
+class Main {
+    public static void main (String[] argv) throws Exception {
         while (true) {
             Server serv = new Server();
             serv.start();
@@ -214,7 +214,6 @@ class Game extends Thread {
 
     Client attackingClient;
     Client victimClient;
-    String[] input;
 
     public Game(Client client1, Client client2) {
         this.client1 = client1;
@@ -246,11 +245,7 @@ class Game extends Thread {
                 } else {
                     victimClient.dos.writeUTF("miss:myfield:" + input[2] + ":" + input[1]);
                     attackingClient.dos.writeUTF("miss:enemyfield:" + input[2] + ":" + input[1]);
-                    if (turn) {
-                        turn = false;
-                    } else {
-                        turn = true;
-                    }
+                    turn = !turn;
                 }
             } catch (Exception ex) {}
         }
